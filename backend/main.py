@@ -46,9 +46,15 @@ def serialize(doc):
 # ─── Índices ────────────────────────────────────────────────────────────────
 @app.on_event("startup")
 def create_indexes():
+<<<<<<< HEAD
     db.pacientes.create_index([("cedula", ASCENDING)], unique=True)
     db.pacientes.create_index([("nombre", ASCENDING)])
     db.pacientes.create_index([("alergias", ASCENDING)])
+=======
+    db.pacientes.create_index("cedula", unique=True)
+    db.pacientes.create_index([("nombre", ASCENDING)])
+    db.pacientes.create_index("alergias")
+>>>>>>> 960fdbd05eccac84e1b71e81ff9593831f8122fa
     db.pacientes.create_index([("consultas.fecha", DESCENDING)])
 
 # ─── Auth ────────────────────────────────────────────────────────────────────

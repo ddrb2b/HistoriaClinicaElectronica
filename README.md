@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 960fdbd05eccac84e1b71e81ff9593831f8122fa
 # 🏥 Clínica Médica Nicolás Abreu — Sistema de Historial Clínico Digital
 
 Sistema de expedientes clínicos digitales desarrollado con **React.js + FastAPI + MongoDB**, containerizado con Docker.
@@ -170,3 +174,10 @@ clinica-nicolas-abreu/
 ---
 
 **Proyecto Final — MBD-106 NoSQL Databases | UAPA — Grupo 3**
+<<<<<<< HEAD
+=======
+=======
+# HistoriaClinicaElectronica
+Proyecto final base de datos NoSQL
+>>>>>>> e22ef362b5c5c3fa02fd2d86f96af6d5efb6919d
+>>>>>>> 960fdbd05eccac84e1b71e81ff9593831f8122fa
