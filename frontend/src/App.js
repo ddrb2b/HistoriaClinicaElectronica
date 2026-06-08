@@ -406,12 +406,12 @@ const css = `
   .patient-hero::before {
     content: ''; position: absolute; right: -2rem; top: -2rem;
     width: 180px; height: 180px; border-radius: 50%;
-    background: rgba(255,255,255,.05);
+    background: rgba(255,255,255,.05); pointer-events: none;
   }
   .patient-hero::after {
     content: ''; position: absolute; right: 4rem; bottom: -3rem;
     width: 120px; height: 120px; border-radius: 50%;
-    background: rgba(255,255,255,.04);
+    background: rgba(255,255,255,.04); pointer-events: none;
   }
   .patient-hero-name { font-size: 1.3rem; font-weight: 700; color: #fff; }
   .patient-hero-meta { font-size: .8rem; color: #93c5fd; margin-top: .4rem; display: flex; gap: 1rem; flex-wrap: wrap; }

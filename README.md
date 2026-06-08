@@ -42,7 +42,7 @@ En otra terminal:
 docker exec -it backend python seed.py
 ```
 
-Inserta **5 pacientes** con consultas, análisis y alertas médicas.
+Inserta **100 pacientes** con consultas, análisis y alertas médicas.
 
 ### 3. Acceder a la aplicación
 
