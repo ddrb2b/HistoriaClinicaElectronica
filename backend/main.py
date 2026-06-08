@@ -43,19 +43,79 @@ def serialize(doc):
     doc["_id"] = str(doc["_id"])
     return doc
 
+# ─── Trade-off: embedding vs referencing ────────────────────────────────────
+#
+# Decisión actual: consultas EMBEBIDAS dentro del documento del paciente.
+#
+# VENTAJAS del embedding (justifican la decisión para este dominio):
+#   - El expediente completo se obtiene en una sola query, sin $lookup.
+#   - Las escrituras de nuevas consultas son atómicas a nivel de documento.
+#   - Los índices sobre consultas.fecha y consultas.doctor funcionan inline.
+#
+# LÍMITE PRÁCTICO: MongoDB impone 16 MB por documento. Con el esquema actual
+# (~500 bytes por consulta) el techo es ~32 000 consultas/paciente — suficiente
+# para la gran mayoría de pacientes de una clínica privada dominicana.
+#
+# CUÁNDO MIGRAR A REFERENCING (colección `consultas` aparte):
+#   - Pacientes crónicos con >200 consultas (historial de décadas).
+#   - Necesidad de paginar consultas sin traer todo el expediente.
+#   - Consultas compartidas entre varios profesionales o instituciones.
+#   En ese caso: colección `consultas` con campo `cedula_paciente` indexado,
+#   y se elimina el array embebido. El costo es un $lookup en cada lectura
+#   del expediente y mayor complejidad transaccional.
+#
 # ─── Índices ────────────────────────────────────────────────────────────────
+#
+# Diseño siguiendo la regla ESR (Equality → Sort → Range):
+#   E: campos con igualdad exacta van primero (mayor selectividad).
+#   S: campos de ordenamiento van después (permiten in-order scan).
+#   R: campos con rango ($gte/$lte/$regex) van al final.
+#
+# Índices simples eliminados: nombre, alergias, consultas.fecha, consultas.doctor
+# — todos absorbidos por los índices compuestos de abajo, que los cubren
+#   y además evitan un segundo fetch al documento (covering indexes).
+#
 @app.on_event("startup")
 def create_indexes():
-<<<<<<< HEAD
+    # ── Punto de acceso principal ──────────────────────────────────────────
+    # E: cedula (igualdad exacta). Único → garantiza integridad referencial.
     db.pacientes.create_index([("cedula", ASCENDING)], unique=True)
-    db.pacientes.create_index([("nombre", ASCENDING)])
-    db.pacientes.create_index([("alergias", ASCENDING)])
-=======
-    db.pacientes.create_index("cedula", unique=True)
-    db.pacientes.create_index([("nombre", ASCENDING)])
-    db.pacientes.create_index("alergias")
->>>>>>> 960fdbd05eccac84e1b71e81ff9593831f8122fa
-    db.pacientes.create_index([("consultas.fecha", DESCENDING)])
+
+    # ── Búsqueda de pacientes por nombre o cédula ──────────────────────────
+    # ESR: E/S = nombre (prefijo exacto o sort), luego cedula como desempate.
+    # Covering index: nombre + cedula cubre la proyección de la lista de pacientes.
+    db.pacientes.create_index(
+        [("nombre", ASCENDING), ("cedula", ASCENDING)],
+        name="idx_nombre_cedula"
+    )
+
+    # ── Reporte de alergias ────────────────────────────────────────────────
+    # ESR: E = alergias (igualdad sobre elemento de array), luego nombre y
+    # cedula cubren la proyección {nombre,cedula,alergias} sin leer el documento.
+    db.pacientes.create_index(
+        [("alergias", ASCENDING), ("nombre", ASCENDING), ("cedula", ASCENDING)],
+        name="idx_alergias_nombre_cedula"
+    )
+
+    # ── Reportes de alertas médicas ────────────────────────────────────────
+    # ESR: R = alertas_medicas ($exists + $ne:[]), luego nombre y cedula
+    # cubren la proyección del endpoint /reportes/alertas.
+    db.pacientes.create_index(
+        [("alertas_medicas", ASCENDING), ("nombre", ASCENDING), ("cedula", ASCENDING)],
+        name="idx_alertas_nombre_cedula"
+    )
+
+    # ── Reportes de consultas por médico y/o rango de fechas ──────────────
+    # ESR: E = consultas.doctor (igualdad cuando se filtra por médico específico),
+    #       R = consultas.fecha ($gte / $lte).
+    # Cubre ambos endpoints: /consultas-por-medico y /consultas-por-medico-rango.
+    # El orden doctor→fecha permite que MongoDB use el índice tanto para el
+    # $group por doctor (recorre entradas del array ordenadas por doctor) como
+    # para el $match de rango sobre fecha dentro de cada médico.
+    db.pacientes.create_index(
+        [("consultas.doctor", ASCENDING), ("consultas.fecha", DESCENDING)],
+        name="idx_consultas_doctor_fecha"
+    )
 
 # ─── Auth ────────────────────────────────────────────────────────────────────
 @app.post("/login")
@@ -146,7 +206,30 @@ def consultas_por_rango(fecha_inicio: str, fecha_fin: str, user: str = Depends(v
         {"$unwind": "$consultas"},
         {"$match": {"consultas.fecha": {"$gte": fecha_inicio, "$lte": fecha_fin}}},
         {"$project": {"nombre": 1, "consultas.fecha": 1, "consultas.doctor": 1,
-                      "consultas.diagnostico": 1, "_id": 0}}
+                      "consultas.motivo": 1, "consultas.diagnostico": 1, "_id": 0}}
+    ]
+    return list(db.pacientes.aggregate(pipeline))
+
+@app.get("/reportes/consultas-por-medico-rango")
+def consultas_por_medico_rango(fecha_inicio: str, fecha_fin: str, user: str = Depends(verify_credentials)):
+    """Consultas agrupadas por médico dentro de un rango de fechas (reporte administrativo)."""
+    pipeline = [
+        {"$unwind": "$consultas"},
+        {"$match": {"consultas.fecha": {"$gte": fecha_inicio, "$lte": fecha_fin}}},
+        {"$group": {
+            "_id": "$consultas.doctor",
+            "total_consultas": {"$sum": 1},
+            "pacientes": {"$addToSet": "$nombre"},
+            "diagnosticos": {"$push": "$consultas.diagnostico"}
+        }},
+        {"$project": {
+            "doctor": "$_id",
+            "total_consultas": 1,
+            "total_pacientes": {"$size": "$pacientes"},
+            "diagnosticos": 1,
+            "_id": 0
+        }},
+        {"$sort": {"total_consultas": -1}}
     ]
     return list(db.pacientes.aggregate(pipeline))
 

@@ -6,23 +6,16 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-<<<<<<< HEAD
     "axios": "^1.6.8",
     "ajv": "^8.12.0"
-=======
-    "axios": "^1.6.8"
->>>>>>> 960fdbd05eccac84e1b71e81ff9593831f8122fa
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build"
   },
-<<<<<<< HEAD
   "resolutions": {
     "ajv": "^8.12.0"
   },
-=======
->>>>>>> 960fdbd05eccac84e1b71e81ff9593831f8122fa
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
     "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]

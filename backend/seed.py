@@ -1,18 +1,10 @@
 """
-<<<<<<< HEAD
 seed.py — Carga 100 pacientes de prueba en MongoDB
 Ejecutar con: docker exec -it backend python seed.py
 """
 from pymongo import MongoClient
 import os, random
 from datetime import date, timedelta
-=======
-seed.py — Carga datos de prueba en MongoDB
-Ejecutar con: docker exec -it backend python seed.py
-"""
-from pymongo import MongoClient
-import os
->>>>>>> 960fdbd05eccac84e1b71e81ff9593831f8122fa
 
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://mongodb:27017/")
 client = MongoClient(MONGO_URL)
@@ -20,7 +12,6 @@ db = client["clinica"]
 
 db.pacientes.drop()
 
-<<<<<<< HEAD
 # ── Datos base ────────────────────────────────────────────────────────────────
 NOMBRES_F = ["María", "Ana", "Carmen", "Rosa", "Laura", "Patricia", "Sofía",
              "Isabel", "Lucía", "Elena", "Valentina", "Gabriela", "Andrea",
@@ -54,27 +45,28 @@ ANTECEDENTES_POOL = ["Hipertensión", "Diabetes tipo 2", "Asma", "Cardiopatía i
 DOCTORES = ["Dr. José Pérez", "Dra. Ana Martínez", "Dr. Miguel Torres",
             "Dra. Carmen Vargas", "Dr. Luis Abreu", "Dra. Patricia Medina"]
 
-DIAGNOSTICOS = [
-    ("Gripe", "Acetaminofén 500mg", "Tomar cada 8 horas por 5 días"),
-    ("Faringitis bacteriana", "Amoxicilina 500mg", "Cada 8 horas por 7 días"),
-    ("Hipertensión arterial", "Losartán 50mg", "Una pastilla diaria en ayunas"),
-    ("Diabetes tipo 2", "Metformina 850mg", "Tomar dos veces al día con las comidas"),
-    ("Gastritis", "Omeprazol 20mg", "30 minutos antes del desayuno"),
-    ("Infección urinaria", "Ciprofloxacina 500mg", "Cada 12 horas por 7 días"),
-    ("Bronquitis aguda", "Azitromicina 500mg", "Una vez al día por 5 días"),
-    ("Migraña", "Sumatriptán 50mg", "Al inicio del dolor, máx 2 dosis al día"),
-    ("Conjuntivitis bacteriana", "Tobramicina colirio", "2 gotas cada 4 horas"),
-    ("Lumbalgia", "Naproxeno 500mg + fisioterapia", "Cada 12 horas con comida"),
-    ("Anemia ferropénica", "Sulfato ferroso 325mg", "Una pastilla diaria"),
-    ("Hipotiroidismo", "Levotiroxina 50mcg", "En ayunas, 30 min antes del desayuno"),
-    ("Control cardiovascular", "Atorvastatina 40mg + Enalapril 10mg", "Tomar diariamente"),
-    ("Dermatitis atópica", "Hidrocortisona crema 1%", "Aplicar 2 veces al día"),
-    ("Crisis asmática leve", "Salbutamol inhalador", "2 puffs cada 4-6 horas en crisis"),
-    ("Otitis media", "Amoxicilina-Clavulánico 875mg", "Cada 12 horas por 10 días"),
-    ("Sinusitis aguda", "Amoxicilina 875mg", "Cada 12 horas por 10 días"),
-    ("Reflujo gastroesofágico", "Esomeprazol 40mg", "Una vez al día antes de dormir"),
-    ("Artritis", "Ibuprofeno 400mg + reposo", "Cada 8 horas con comida"),
-    ("Control prenatal", "Ácido fólico 5mg + hierro", "Diariamente"),
+# (motivo, diagnostico, tratamiento, receta)
+CONSULTAS_POOL = [
+    ("Fiebre y malestar general", "Gripe", "Acetaminofén 500mg", "Tomar cada 8 horas por 5 días"),
+    ("Dolor de garganta", "Faringitis bacteriana", "Amoxicilina 500mg", "Cada 8 horas por 7 días"),
+    ("Control de presión arterial", "Hipertensión arterial", "Losartán 50mg", "Una pastilla diaria en ayunas"),
+    ("Control de glucosa", "Diabetes tipo 2", "Metformina 850mg", "Tomar dos veces al día con las comidas"),
+    ("Dolor epigástrico", "Gastritis", "Omeprazol 20mg", "30 minutos antes del desayuno"),
+    ("Ardor al orinar", "Infección urinaria", "Ciprofloxacina 500mg", "Cada 12 horas por 7 días"),
+    ("Tos con expectoración", "Bronquitis aguda", "Azitromicina 500mg", "Una vez al día por 5 días"),
+    ("Dolor de cabeza intenso", "Migraña", "Sumatriptán 50mg", "Al inicio del dolor, máx 2 dosis al día"),
+    ("Ojo rojo con secreción", "Conjuntivitis bacteriana", "Tobramicina colirio", "2 gotas cada 4 horas"),
+    ("Dolor lumbar", "Lumbalgia", "Naproxeno 500mg + fisioterapia", "Cada 12 horas con comida"),
+    ("Cansancio y palidez", "Anemia ferropénica", "Sulfato ferroso 325mg", "Una pastilla diaria"),
+    ("Chequeo de tiroides", "Hipotiroidismo", "Levotiroxina 50mcg", "En ayunas, 30 min antes del desayuno"),
+    ("Control cardiovascular", "Control cardiovascular", "Atorvastatina 40mg + Enalapril 10mg", "Tomar diariamente"),
+    ("Picazón en la piel", "Dermatitis atópica", "Hidrocortisona crema 1%", "Aplicar 2 veces al día"),
+    ("Dificultad para respirar", "Crisis asmática leve", "Salbutamol inhalador", "2 puffs cada 4-6 horas en crisis"),
+    ("Dolor de oído", "Otitis media", "Amoxicilina-Clavulánico 875mg", "Cada 12 horas por 10 días"),
+    ("Congestión nasal y presión facial", "Sinusitis aguda", "Amoxicilina 875mg", "Cada 12 horas por 10 días"),
+    ("Acidez y regurgitación", "Reflujo gastroesofágico", "Esomeprazol 40mg", "Una vez al día antes de dormir"),
+    ("Dolor articular", "Artritis", "Ibuprofeno 400mg + reposo", "Cada 8 horas con comida"),
+    ("Control prenatal", "Control prenatal", "Ácido fólico 5mg + hierro", "Diariamente"),
 ]
 
 ANALISIS_POOL = [
@@ -140,10 +132,11 @@ for i in range(100):
     fechas_c = rand_consult_dates(random.randint(1, 5))
     consultas = []
     for fc in fechas_c:
-        diag, trat, receta = random.choice(DIAGNOSTICOS)
+        motivo, diag, trat, receta = random.choice(CONSULTAS_POOL)
         consultas.append({
             "fecha": fc,
             "doctor": random.choice(DOCTORES),
+            "motivo": motivo,
             "diagnostico": diag,
             "tratamiento": trat,
             "receta": receta,
@@ -188,149 +181,3 @@ print(f"   Consultas totales  : {total_consultas}")
 print(f"   Con alergias       : {con_alergias}")
 print(f"   Con antecedentes   : {con_antecedentes}")
 print(f"   Sin alergias       : {100 - con_alergias}")
-=======
-pacientes = [
-    {
-        "_id": "PAC001",
-        "cedula": "40212345678",
-        "nombre": "María López",
-        "fecha_nacimiento": "1995-04-12",
-        "telefono": "8095551234",
-        "direccion": "Santiago, República Dominicana",
-        "alergias": ["Penicilina", "Ibuprofeno"],
-        "antecedentes_medicos": ["Hipertensión"],
-        "consultas": [
-            {
-                "fecha": "2026-06-01",
-                "doctor": "Dr. José Pérez",
-                "diagnostico": "Gripe",
-                "tratamiento": "Acetaminofén",
-                "receta": "Tomar cada 8 horas por 5 días"
-            },
-            {
-                "fecha": "2026-05-10",
-                "doctor": "Dra. Ana Martínez",
-                "diagnostico": "Control de hipertensión",
-                "tratamiento": "Losartán 50mg",
-                "receta": "Una pastilla diaria en ayunas"
-            }
-        ],
-        "analisis_clinicos": [
-            {"tipo": "Hemograma", "fecha": "2026-05-28", "resultado": "Normal"},
-            {"tipo": "Glucosa", "fecha": "2026-05-28", "resultado": "95 mg/dL - Normal"}
-        ],
-        "alertas_medicas": ["Paciente alérgico a Penicilina", "Paciente alérgico a Ibuprofeno"]
-    },
-    {
-        "_id": "PAC002",
-        "cedula": "00112987654",
-        "nombre": "Carlos Ramírez",
-        "fecha_nacimiento": "1980-11-30",
-        "telefono": "8091234567",
-        "direccion": "Santiago, República Dominicana",
-        "alergias": [],
-        "antecedentes_medicos": ["Diabetes tipo 2", "Obesidad"],
-        "consultas": [
-            {
-                "fecha": "2026-06-03",
-                "doctor": "Dr. José Pérez",
-                "diagnostico": "Control diabetes",
-                "tratamiento": "Metformina 850mg",
-                "receta": "Tomar dos veces al día con las comidas"
-            }
-        ],
-        "analisis_clinicos": [
-            {"tipo": "Hemoglobina glicosilada (HbA1c)", "fecha": "2026-06-01", "resultado": "7.2% - Aceptable"},
-            {"tipo": "Perfil lipídico", "fecha": "2026-06-01", "resultado": "Colesterol 210 mg/dL - Elevado"}
-        ],
-        "alertas_medicas": ["Paciente diabético — monitorear glucosa"]
-    },
-    {
-        "_id": "PAC003",
-        "cedula": "22334455667",
-        "nombre": "Laura Fernández",
-        "fecha_nacimiento": "2002-07-15",
-        "telefono": "8097778899",
-        "direccion": "La Vega, República Dominicana",
-        "alergias": ["Aspirina"],
-        "antecedentes_medicos": [],
-        "consultas": [
-            {
-                "fecha": "2026-06-05",
-                "doctor": "Dra. Ana Martínez",
-                "diagnostico": "Faringitis bacteriana",
-                "tratamiento": "Amoxicilina 500mg",
-                "receta": "Cada 8 horas por 7 días"
-            }
-        ],
-        "analisis_clinicos": [
-            {"tipo": "Cultivo de garganta", "fecha": "2026-06-04", "resultado": "Streptococcus positivo"}
-        ],
-        "alertas_medicas": ["Paciente alérgico a Aspirina"]
-    },
-    {
-        "_id": "PAC004",
-        "cedula": "99887766554",
-        "nombre": "Roberto Sánchez",
-        "fecha_nacimiento": "1960-02-20",
-        "telefono": "8096543210",
-        "direccion": "Santiago, República Dominicana",
-        "alergias": ["Penicilina", "Sulfonamidas"],
-        "antecedentes_medicos": ["Cardiopatía isquémica", "Hipertensión"],
-        "consultas": [
-            {
-                "fecha": "2026-05-20",
-                "doctor": "Dr. José Pérez",
-                "diagnostico": "Revisión cardiovascular",
-                "tratamiento": "Atorvastatina 40mg + Enalapril 10mg",
-                "receta": "Tomar diariamente, consulta en 3 meses"
-            },
-            {
-                "fecha": "2026-04-10",
-                "doctor": "Dr. Miguel Torres",
-                "diagnostico": "Dolor torácico atípico",
-                "tratamiento": "ECG — descartado infarto",
-                "receta": "Reposo, evitar esfuerzos"
-            }
-        ],
-        "analisis_clinicos": [
-            {"tipo": "ECG", "fecha": "2026-05-19", "resultado": "Ritmo sinusal normal"},
-            {"tipo": "Troponina", "fecha": "2026-04-10", "resultado": "Negativo"}
-        ],
-        "alertas_medicas": [
-            "Paciente alérgico a Penicilina",
-            "Paciente alérgico a Sulfonamidas",
-            "Antecedente de cardiopatía isquémica — precaución con AINEs"
-        ]
-    },
-    {
-        "_id": "PAC005",
-        "cedula": "11223344556",
-        "nombre": "Patricia Díaz",
-        "fecha_nacimiento": "1990-09-08",
-        "telefono": "8094567890",
-        "direccion": "Moca, Espaillat",
-        "alergias": [],
-        "antecedentes_medicos": ["Asma leve"],
-        "consultas": [
-            {
-                "fecha": "2026-06-06",
-                "doctor": "Dra. Ana Martínez",
-                "diagnostico": "Crisis asmática leve",
-                "tratamiento": "Salbutamol inhalador",
-                "receta": "2 puffs cada 4-6 horas durante crisis"
-            }
-        ],
-        "analisis_clinicos": [
-            {"tipo": "Espirometría", "fecha": "2026-06-05", "resultado": "FEV1 78% — Obstrucción leve"}
-        ],
-        "alertas_medicas": ["Antecedente de asma — evitar betabloqueadores"]
-    }
-]
-
-result = db.pacientes.insert_many(pacientes)
-print(f"✅ {len(result.inserted_ids)} pacientes insertados correctamente.")
-print("Pacientes disponibles:")
-for p in db.pacientes.find({}, {"nombre": 1, "cedula": 1, "_id": 0}):
-    print(f"  - {p['nombre']} (Cédula: {p['cedula']})")
->>>>>>> 960fdbd05eccac84e1b71e81ff9593831f8122fa
