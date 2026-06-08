@@ -1,30 +1,29 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 960fdbd05eccac84e1b71e81ff9593831f8122fa
-# 🏥 Clínica Médica Nicolás Abreu — Sistema de Historial Clínico Digital
+# Historia Clínica Electrónica — Clínica Médica Nicolás Abreu
 
 Sistema de expedientes clínicos digitales desarrollado con **React.js + FastAPI + MongoDB**, containerizado con Docker.
 
 ---
 
-## 🧱 Arquitectura
+## Arquitectura
 
 ```
-frontend  (React.js)       → http://localhost:3000
+frontend  (React.js 18)    → http://localhost:3000
 backend   (FastAPI/Python) → http://localhost:8000
 mongodb   (MongoDB 7.0)    → localhost:27017
 ```
 
 ---
 
-## ▶ Ejecución rápida
+## Requisitos
 
-### Requisitos
-- Docker Desktop instalado y corriendo
+- Docker Desktop instalado y en ejecución
 - Docker Compose v2+
 
-### 1. Levantar todos los contenedores
+---
+
+## Ejecución rápida
+
+### 1. Levantar todos los servicios
 
 ```bash
 docker-compose up --build
@@ -36,25 +35,25 @@ frontend  | Compiled successfully!
 backend   | Application startup complete.
 ```
 
-### 2. Cargar datos de prueba (seed)
+### 2. Cargar datos de prueba
 
 En otra terminal:
 ```bash
 docker exec -it backend python seed.py
 ```
 
-Esto inserta **5 pacientes** con consultas, análisis y alertas médicas reales.
+Inserta **5 pacientes** con consultas, análisis y alertas médicas.
 
 ### 3. Acceder a la aplicación
 
-| Servicio       | URL                          |
-|----------------|------------------------------|
-| Frontend       | http://localhost:3000        |
-| API (Swagger)  | http://localhost:8000/docs   |
+| Servicio      | URL                        |
+|---------------|----------------------------|
+| Frontend      | http://localhost:3000      |
+| API (Swagger) | http://localhost:8000/docs |
 
 ---
 
-## 🔐 Credenciales de prueba
+## Credenciales de prueba
 
 | Usuario | Contraseña |
 |---------|------------|
@@ -63,10 +62,10 @@ Esto inserta **5 pacientes** con consultas, análisis y alertas médicas reales.
 
 ---
 
-## 📦 Funcionalidades
+## Funcionalidades
 
-### Panel principal (Dashboard)
-- Estadísticas: total pacientes, consultas, pacientes con alergias
+### Dashboard
+- Estadísticas generales: total de pacientes, consultas y pacientes con alergias
 - Alertas médicas activas del sistema
 
 ### Pacientes
@@ -81,44 +80,64 @@ Esto inserta **5 pacientes** con consultas, análisis y alertas médicas reales.
 - Registro de nuevas consultas y análisis
 
 ### Reportes
-- Consultas por médico (aggregation pipeline)
+- Consultas por médico
 - Pacientes con alertas activas
 - Búsqueda de pacientes por alergia específica
 - Consultas filtradas por rango de fechas
+- Consultas por médico en rango de fechas
 
 ---
 
-## 🍃 MongoDB — Queries del negocio
+## API — Endpoints principales
 
-Conectarse al shell de MongoDB:
+| Método | Ruta                                      | Descripción                        |
+|--------|-------------------------------------------|------------------------------------|
+| POST   | `/login`                                  | Autenticación                      |
+| GET    | `/pacientes`                              | Listar todos los pacientes         |
+| POST   | `/pacientes`                              | Registrar nuevo paciente           |
+| GET    | `/pacientes/{cedula}`                     | Obtener expediente de un paciente  |
+| DELETE | `/pacientes/{cedula}`                     | Eliminar paciente                  |
+| POST   | `/pacientes/{cedula}/consultas`           | Agregar consulta                   |
+| POST   | `/pacientes/{cedula}/analisis`            | Agregar análisis clínico           |
+| GET    | `/reportes/estadisticas`                  | Estadísticas del dashboard         |
+| GET    | `/reportes/alertas`                       | Pacientes con alertas activas      |
+| GET    | `/reportes/alergias/{medicamento}`        | Pacientes por alergia              |
+| GET    | `/reportes/consultas-por-medico`          | Consultas agrupadas por médico     |
+| GET    | `/reportes/consultas-rango`               | Consultas por rango de fechas      |
+| GET    | `/reportes/consultas-por-medico-rango`    | Consultas por médico y rango       |
+
+Documentación interactiva completa en: `http://localhost:8000/docs`
+
+---
+
+## MongoDB — Consultas de ejemplo
+
+Conectarse al shell:
 ```bash
 docker exec -it mongodb mongosh clinica
 ```
 
 ```js
-// 1. Historial completo de un paciente
+// Historial completo de un paciente
 db.pacientes.find({ cedula: "40212345678" })
 
-// 2. Pacientes con alergia a Penicilina
+// Pacientes con alergia a Penicilina
 db.pacientes.find({ alergias: "Penicilina" }, { nombre: 1, alergias: 1 })
 
-// 3. Consultas en un rango de fechas
+// Consultas en un rango de fechas
 db.pacientes.aggregate([
   { $unwind: "$consultas" },
   { $match: { "consultas.fecha": { $gte: "2026-06-01", $lte: "2026-06-30" } } },
   { $project: { nombre: 1, "consultas.fecha": 1, "consultas.doctor": 1, "consultas.diagnostico": 1 } }
 ])
 
-// 4. Consultas por médico
+// Consultas agrupadas por médico
 db.pacientes.aggregate([
   { $unwind: "$consultas" },
   { $group: { _id: "$consultas.doctor", total_consultas: { $sum: 1 } } }
 ])
 
-// 5. Análisis de un paciente
-db.pacientes.find({ cedula: "40212345678" }, { nombre: 1, analisis_clinicos: 1 })
-
-// 6. Pacientes con alertas médicas
+// Pacientes con alertas médicas activas
 db.pacientes.find(
   { alertas_medicas: { $exists: true, $ne: [] } },
   { nombre: 1, alertas_medicas: 1 }
@@ -127,7 +146,7 @@ db.pacientes.find(
 
 ---
 
-## 🛑 Detener la aplicación
+## Detener la aplicación
 
 ```bash
 docker-compose down
@@ -140,10 +159,10 @@ docker-compose down -v
 
 ---
 
-## 📁 Estructura del proyecto
+## Estructura del proyecto
 
 ```
-clinica-nicolas-abreu/
+HistoriaClinica/
 ├── backend/
 │   ├── main.py          # FastAPI — endpoints REST
 │   ├── seed.py          # Carga datos de prueba
@@ -151,7 +170,7 @@ clinica-nicolas-abreu/
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── App.js       # Aplicación React completa
+│   │   ├── App.js       # Aplicación React
 │   │   └── index.js
 │   ├── public/index.html
 │   ├── package.json
@@ -162,22 +181,15 @@ clinica-nicolas-abreu/
 
 ---
 
-## 🛠 Tecnologías
+## Tecnologías
 
-| Capa       | Tecnología            |
-|------------|-----------------------|
-| Frontend   | React.js 18, Axios    |
-| Backend    | Python, FastAPI, PyMongo |
-| Base de datos | MongoDB 7.0        |
-| Contenedores | Docker, Docker Compose |
+| Capa           | Tecnología                  |
+|----------------|-----------------------------|
+| Frontend       | React.js 18, Axios          |
+| Backend        | Python, FastAPI, PyMongo    |
+| Base de datos  | MongoDB 7.0                 |
+| Contenedores   | Docker, Docker Compose      |
 
 ---
 
-**Proyecto Final — MBD-106 NoSQL Databases | UAPA — Grupo 3**
-<<<<<<< HEAD
-=======
-=======
-# HistoriaClinicaElectronica
-Proyecto final base de datos NoSQL
->>>>>>> e22ef362b5c5c3fa02fd2d86f96af6d5efb6919d
->>>>>>> 960fdbd05eccac84e1b71e81ff9593831f8122fa
+**Proyecto Final — MBD-106 Bases de Datos NoSQL | UAPA — Grupo 3**
