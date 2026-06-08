@@ -1,0 +1,15 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package.json .
+RUN npm install --legacy-peer-deps
+
+COPY . .
+
+EXPOSE 3000
+
+ENV REACT_APP_API_URL=http://localhost:8000
+ENV WDS_SOCKET_PORT=0
+
+CMD ["npm", "start"]
