@@ -43,38 +43,6 @@ def serialize(doc):
     doc["_id"] = str(doc["_id"])
     return doc
 
-# ─── Trade-off: embedding vs referencing ────────────────────────────────────
-#
-# Decisión actual: consultas EMBEBIDAS dentro del documento del paciente.
-#
-# VENTAJAS del embedding (justifican la decisión para este dominio):
-#   - El expediente completo se obtiene en una sola query, sin $lookup.
-#   - Las escrituras de nuevas consultas son atómicas a nivel de documento.
-#   - Los índices sobre consultas.fecha y consultas.doctor funcionan inline.
-#
-# LÍMITE PRÁCTICO: MongoDB impone 16 MB por documento. Con el esquema actual
-# (~500 bytes por consulta) el techo es ~32 000 consultas/paciente — suficiente
-# para la gran mayoría de pacientes de una clínica privada dominicana.
-#
-# CUÁNDO MIGRAR A REFERENCING (colección `consultas` aparte):
-#   - Pacientes crónicos con >200 consultas (historial de décadas).
-#   - Necesidad de paginar consultas sin traer todo el expediente.
-#   - Consultas compartidas entre varios profesionales o instituciones.
-#   En ese caso: colección `consultas` con campo `cedula_paciente` indexado,
-#   y se elimina el array embebido. El costo es un $lookup en cada lectura
-#   del expediente y mayor complejidad transaccional.
-#
-# ─── Índices ────────────────────────────────────────────────────────────────
-#
-# Diseño siguiendo la regla ESR (Equality → Sort → Range):
-#   E: campos con igualdad exacta van primero (mayor selectividad).
-#   S: campos de ordenamiento van después (permiten in-order scan).
-#   R: campos con rango ($gte/$lte/$regex) van al final.
-#
-# Índices simples eliminados: nombre, alergias, consultas.fecha, consultas.doctor
-# — todos absorbidos por los índices compuestos de abajo, que los cubren
-#   y además evitan un segundo fetch al documento (covering indexes).
-#
 @app.on_event("startup")
 def create_indexes():
     # ── Punto de acceso principal ──────────────────────────────────────────
@@ -163,13 +131,30 @@ def eliminar_paciente(cedula: str, user: str = Depends(verify_credentials)):
 # ─── Consultas médicas ────────────────────────────────────────────────────────
 @app.post("/pacientes/{cedula}/consultas")
 def agregar_consulta(cedula: str, consulta: dict, user: str = Depends(verify_credentials)):
-    result = db.pacientes.update_one(
+
+    # 1. Verificar cuántas consultas tiene el paciente
+    paciente = db.pacientes.find_one(
+        {"cedula": cedula},
+        {"consultas": 1}
+    )
+
+    total_consultas = len(paciente.get("consultas", []))
+
+    # 2. Si supera el umbral, bloquear o advertir
+    if total_consultas >= 500:
+        raise HTTPException(
+            status_code=400,
+            detail="Este paciente superó el límite de 500 consultas embebidas. "
+                   "Migrar historial a colección separada."
+        )
+
+    # 3. Si está dentro del límite, agregar normalmente con $push
+    db.pacientes.update_one(
         {"cedula": cedula},
         {"$push": {"consultas": consulta}}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Paciente no encontrado")
     return {"mensaje": "Consulta registrada"}
+ 
 
 # ─── Análisis clínicos ────────────────────────────────────────────────────────
 @app.post("/pacientes/{cedula}/analisis")
