@@ -1205,6 +1205,7 @@ function NuevoAnalisisModal({ creds, cedula, onClose }) {
 function Reportes({ creds }) {
   const [porMedico, setPorMedico] = useState([]);
   const [alertas, setAlertas] = useState([]);
+  const alertasPag = usePagination(alertas, 5);
   const [alergiaInput, setAlergiaInput] = useState('Penicilina');
   const [alergiaResult, setAlergiaResult] = useState(null);
   const [rangoInicio, setRangoInicio] = useState('2026-06-01');
@@ -1240,46 +1241,6 @@ function Reportes({ creds }) {
       </div>
 
       <div className="two-col" style={{ marginBottom: '1.25rem' }}>
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title"><div className="card-title-dot" />Consultas por médico</div>
-          </div>
-          <div className="card-body">
-            {porMedico.length > 0
-              ? porMedico.map((m, i) => (
-                <div key={i} className="report-row">
-                  <div>
-                    <div className="report-row-name">{m._id || '(sin asignar)'}</div>
-                  </div>
-                  <span className="badge blue">{m.total_consultas} consulta{m.total_consultas !== 1 ? 's' : ''}</span>
-                </div>
-              ))
-              : <div className="empty-state"><div className="empty-state-icon"><Icon d={ICONS.chart} size={18} /></div><p>Sin datos disponibles</p></div>}
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title"><div className="card-title-dot" style={{ background: 'var(--red)' }} />Pacientes con alertas activas</div>
-            {alertas.length > 0 && <span className="badge red">{alertas.length}</span>}
-          </div>
-          <div className="card-body">
-            {alertas.length > 0
-              ? alertas.map((p, i) => (
-                <div key={i} className="report-row">
-                  <div>
-                    <div className="report-row-name">{p.nombre}</div>
-                    <div className="report-row-sub">{p.alertas_medicas.join(' · ')}</div>
-                  </div>
-                  <span className="badge red">{p.alertas_medicas.length}</span>
-                </div>
-              ))
-              : <div className="empty-state"><div className="empty-state-icon"><Icon d={ICONS.shield} size={18} /></div><p>Sin alertas activas</p></div>}
-          </div>
-        </div>
-      </div>
-
-      <div className="two-col">
         <div className="card">
           <div className="card-header">
             <div className="card-title"><div className="card-title-dot" style={{ background: 'var(--yellow)' }} />Buscar por alergia</div>
@@ -1339,6 +1300,48 @@ function Reportes({ creds }) {
                 : <div className="empty-state" style={{ padding: '1rem' }}><p>Sin consultas en ese período</p></div>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="two-col">
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title"><div className="card-title-dot" />Consultas por médico</div>
+          </div>
+          <div className="card-body">
+            {porMedico.length > 0
+              ? porMedico.map((m, i) => (
+                <div key={i} className="report-row">
+                  <div>
+                    <div className="report-row-name">{m._id || '(sin asignar)'}</div>
+                  </div>
+                  <span className="badge blue">{m.total_consultas} consulta{m.total_consultas !== 1 ? 's' : ''}</span>
+                </div>
+              ))
+              : <div className="empty-state"><div className="empty-state-icon"><Icon d={ICONS.chart} size={18} /></div><p>Sin datos disponibles</p></div>}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title"><div className="card-title-dot" style={{ background: 'var(--red)' }} />Pacientes con alertas activas</div>
+            {alertas.length > 0 && <span className="badge red">{alertas.length}</span>}
+          </div>
+          <div className="card-body">
+            {alertas.length > 0
+              ? alertasPag.slice.map((p, i) => (
+                <div key={i} className="report-row">
+                  <div>
+                    <div className="report-row-name">{p.nombre}</div>
+                    <div className="report-row-sub">{p.alertas_medicas.join(' · ')}</div>
+                  </div>
+                  <span className="badge red">{p.alertas_medicas.length}</span>
+                </div>
+              ))
+              : <div className="empty-state"><div className="empty-state-icon"><Icon d={ICONS.shield} size={18} /></div><p>Sin alertas activas</p></div>}
+          </div>
+          <Pagination page={alertasPag.page} totalPages={alertasPag.totalPages}
+            setPage={alertasPag.setPage} total={alertasPag.total} pageSize={5} />
         </div>
       </div>
     </div>
